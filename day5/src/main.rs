@@ -28,11 +28,11 @@ impl LineSegment {
     // This relies on the fact that we only have to deal with vertical, horizontal, or 45 degree
     // lines to operate correctly.
     pub fn points(&self) -> Vec<(i64, i64)> {
-        let dx = self.x1 - self.x2;
-        let dy = self.y1 - self.y2;
+        let dx = self.x2 - self.x1;
+        let dy = self.y2 - self.y1;
 
-        let x_dir = if dx > 0 { -1 } else if dx < 0 { 1 } else { 0 };
-        let y_dir = if dy > 0 { -1 } else if dy < 0 { 1 } else { 0 };
+        let x_dir = dx.signum();
+        let y_dir = dy.signum();
 
         let mut points = Vec::new();
         for i in 0..i64::max(dx.abs(), dy.abs())+1 {
