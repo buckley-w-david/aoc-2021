@@ -76,7 +76,7 @@ And given the transitivity of multiplication, we can write this as
 
 fn(k) = M**k * fn(0)
 
-Which gives us a state vector for each growth stage, which we can sum for the total population
+Which gives us a state vector with each growth stage, which we can sum for the total population
 """
 M = np.array([
     [0, 1, 0, 0, 0, 0 ,0 ,0 ,0],
