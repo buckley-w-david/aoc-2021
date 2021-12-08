@@ -43,21 +43,21 @@ for line in lines:
     for d in remove:
         signals.remove(d)
 
+    for three in signals:
+        s = set(three)
+        if len(three) == 5 and len(s - encode[7]) == 2:
+            encode[3] = s
+            signals.remove(three)
+            break
+
+    for nine in signals:
+        s = set(nine)
+        if len(nine) == 6 and len(s - encode[3]) == 1:
+            encode[9] = s
+            signals.remove(nine)
+            break
+
     def f():
-        for three in signals:
-            s = set(three)
-            if len(three) == 5 and len(s - encode[7]) == 2:
-                encode[3] = s
-                signals.remove(three)
-                break
-
-        for nine in signals:
-            s = set(nine)
-            if len(nine) == 6 and len(s - encode[3]) == 1:
-                encode[9] = s
-                signals.remove(nine)
-                break
-
         for five in signals:
             for six in signals:
                 if len(five) == 5 and len(six) == 6:
@@ -86,7 +86,6 @@ for line in lines:
     encode[9] = a.union(b).union(c).union(d).union(f).union(g)
     encode[3] = a.union(c).union(d).union(f).union(g)
 
-    from pprint import pprint
     decode = {
         ''.join(sorted(encode[0])): 0, 
         ''.join(sorted(encode[1])): 1, 
@@ -101,14 +100,9 @@ for line in lines:
     }
 
     final = []
-    pprint(decode)
-    pprint(digits)
     for digit in digits:
         s = ''.join(sorted(digit))
         final.append(str(decode[s]))
-    # print(encode, signals, digits)
-    print(final)
-    # breakpoint()
     final_sum += int(''.join(final))
 
 
