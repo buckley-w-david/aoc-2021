@@ -47,11 +47,11 @@ class Oct:
 lines = [[Oct(int(c)) for c in l] for l in data.split("\n")]
 grid = Grid(lines)
 
-def process_flash(y, x):
-    for ((y, x), oct) in grid.around_with_index(y, x):
+def process_flash(yx):
+    for (yx, oct) in grid.around_with_index(yx):
         oct.bump()
         if oct.emit():
-            process_flash(y, x)
+            process_flash(yx)
 
 gen = 0
 all_flashed = False
@@ -59,9 +59,9 @@ while not all_flashed:
     gen += 1
     grid.apply(Oct.bump)
 
-    for ((y, x), oct) in grid.row_major_with_index():
+    for (yx, oct) in grid.row_major_with_index():
         if oct.emit():
-            process_flash(y, x)
+            process_flash(yx)
 
     all_flashed = all([oct.flashed for oct in grid.row_major()])
     grid.apply(Oct.reset)
