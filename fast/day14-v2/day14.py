@@ -98,7 +98,9 @@ Applying this means that the rows for B, AB, and BA all have a 1 in the column f
 The same process is done for all rules.
 
 This gives us how the relationship of pairs and singles grow given the counts pairs in the previous generation.
-We then need to factor in that the counts of single characters (A, B, and C in our example) do not decrease from generation to generation. Only new characters are introduced. This means in the rows for each single character count, we also need a 1 in the row for that single. This is the cell on the main diagonal.
+We then need to factor in that the counts of single characters (A, B, and C in our example) do not decrease from generation to generation. 
+Only new characters are introduced. This means in the rows for each single character count, we also need a 1 in the row for that single. 
+This is the cell on the main diagonal.
 
 This is the final construction of M
     ┌                         ┐ 
