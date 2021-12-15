@@ -26,28 +26,19 @@ gg = [[int(c) for c in row] for row in rows]
 lc = len(gg)
 lr = len(gg[0])
 
-
-# grid = [[int(c) for c in row] for row in data.splitlines()]
-grid = [[0 for _ in range(lr*5)] for _ in range(lc*5)]
+grid = Grid([[0 for _ in range(lr*5)] for _ in range(lc*5)])
+graph = Graph()
 
 for yy in range(5):
     for xx in range(5):
         for y in range(lc):
             for x in range(lr):
-                original = gg[y][x]
-                v = original
-                for inc in range(yy+xx):
-                    v += 1
-                    if v > 9:
-                        v = 1
-                grid[y+yy*lc][x+xx*lr] = v
+                me = (y+yy*lc, x+xx*lr)
+                cost = ((gg[y][x] - 1 + yy + xx) % 9) + 1
 
-grid = Grid(grid)
-graph = Graph()
+                for p, _ in grid.around_with_index(me, corners=False):
+                    graph.add_edge(p, me, cost)
 
-for y in range(5*lc):
-    for x in range(5*lr):
-        for p, v in grid.around_with_index((y, x), corners=False):
-            graph.add_edge((y, x), p, v)
-
-print(find_path(graph, (0, 0), (lc*5 - 1, lr * 5 - 1)))
+target = (grid.height-1, grid.width-1)
+path_info = find_path(graph, (0, 0), target)
+print(path_info.total_cost)
