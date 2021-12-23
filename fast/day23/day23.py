@@ -2,12 +2,9 @@
 
 print("\033[2J\033[H") # ]]
 
-# from math import fabs
-# from aocd import get_data, submit
 from aoc_utils import Graph
 import re
 
-# data = get_data(year=2021, day=23, block=True)
 data = """
 #############
 #...........#
@@ -29,13 +26,42 @@ data = """
   #########
 """
 
-#############
-#0123456789A#
-###B#D#F#H###
-  #C#E#G#I#
-  #########
+idx_lookup = {
+    0: 11,
+    1: 13,
+    2: 15,
+    3: 17,
+    4: 12,
+    5: 14,
+    6: 16,
+    7: 18,
+    8: 19,
+    9: 20,
+    10: 21,
+    11: 22,
+    12: 23,
+    13: 24,
+    14: 25,
+    15: 26,
+    16: 27,
+}
 
-burrow = {
+char_lookup = {
+    'A': 0,
+    'B': 1,
+    'C': 2,
+    'D': 3,
+}
+
+starting = re.findall(r"\w", data)
+
+#         A    B    C    D
+state = [[ ], [ ], [ ], [ ]]
+for i, c in enumerate(starting):
+    state[char_lookup[c]].append(idx_lookup[i])
+state = tuple(map(frozenset, state))
+
+connections = {
     0: {1},
     1: {2, 0},
     2: {1, 3, 11},
@@ -100,48 +126,12 @@ room_bottom = [
 
 
 bg = Graph()
-for b, conns in burrow.items():
+for b, conns in connections.items():
     for c in conns:
         bg.add_edge(b, c)
 path_lengths = [0 for _ in range(27)]
 for i in range(27):
     path_lengths[i] = bg.dijkstra(i)
-
-idx_lookup = {
-    0: 11,
-    1: 13,
-    2: 15,
-    3: 17,
-    4: 12,
-    5: 14,
-    6: 16,
-    7: 18,
-    8: 19,
-    9: 20,
-    10: 21,
-    11: 22,
-    12: 23,
-    13: 24,
-    14: 25,
-    15: 26,
-    16: 27,
-}
-
-char_lookup = {
-    'A': 0,
-    'B': 1,
-    'C': 2,
-    'D': 3,
-}
-
-starting = re.findall(r"\w", data)
-
-#         A    B    C    D
-state = [[ ], [ ], [ ], [ ]]
-for i, c in enumerate(starting):
-    state[char_lookup[c]].append(idx_lookup[i])
-state = tuple(map(frozenset, state))
-
 
 target_state = tuple(type_rooms)
 type_costs = (1, 10, 100, 1000)
@@ -150,14 +140,6 @@ def done(state):
     return state == target_state
 
 from more_itertools import flatten
-
-try:
-    from functools import cache
-except ImportError:
-    from functools import lru_cache
-    cache = lru_cache(None)
-
-@cache
 def is_legal(state, type, target, dest):
     occupied_spaces = frozenset(flatten(state))
     their_room = type_rooms[type]
@@ -192,6 +174,8 @@ def is_legal(state, type, target, dest):
         if invalid:
             return False
 
+    # Optimization
+    # It is illegal to move out of a "finished" room
     if state[type] == target_state[type]:
         return False
 
@@ -223,98 +207,38 @@ def is_legal(state, type, target, dest):
 
     return True
 
-infinity = float('inf')
-
-db = [[c for c in l] for l in """
-#############
-#...........#
-###.#.#.#.###
-  #.#.#.#.#
-  #.#.#.#.#
-  #.#.#.#.#
-  #########
-""".strip().splitlines()]
-display_map = {
-    0: (1, 1),
-    1: (1, 2),
-    2: (1, 3),
-    3: (1, 4),
-    4: (1, 5),
-    5: (1, 6),
-    6: (1, 7),
-    7: (1, 8),
-    8: (1, 9),
-    9: (1, 10),
-    10: (1, 11),
-    11: (2, 3),
-    12: (3, 3),
-    13: (2, 5),
-    14: (3, 5),
-    15: (2, 7),
-    16: (3, 7),
-    17: (2, 9),
-    18: (3, 9),
-    19: (4, 3),
-    20: (4, 5),
-    21: (4, 7),
-    22: (4, 9),
-    23: (5, 3),
-    24: (5, 5),
-    25: (5, 7),
-    26: (5, 9),
-}
-
-
-chars = ['A', 'B', 'C', 'D']
-
-from copy import deepcopy
-def display(state):
-    buffer = deepcopy(db)
-    for i, (a, b, c, d) in enumerate(state):
-        j, k = display_map[a]
-        buffer[j][k] = chars[i]
-        j, k = display_map[b]
-        buffer[j][k] = chars[i]
-        j, k = display_map[c]
-        buffer[j][k] = chars[i]
-        j, k = display_map[d]
-        buffer[j][k] = chars[i]
-    print('\n'.join(''.join(l) for l in buffer))
-
-min_cost = infinity
-def step(state, history, parent_cost):
-    # display(state)
-    # sleep(1)
-    if done(state):
-        global min_cost
-        if parent_cost < min_cost:
-            min_cost = parent_cost
-            print(parent_cost)
-        return parent_cost
-    history.add(state)
-
+def legal_transitions(state):
     for i, a in enumerate(state):
         for b in a:
             for move in range(27):
                 ns = state[0:i] + ((state[i] - {b}).union({move}),) + state[i+1:]
-                if ns not in history and is_legal(state, i, b, move):
+                if is_legal(state, i, b, move):
                     this_cost = type_costs[i]*path_lengths[b].distance_to(move)
-                    step(ns, history.copy(), parent_cost+this_cost)
+                    yield this_cost, ns
 
-first_round = []
-history = {state}
-for i, a in enumerate(state):
-    for b in a:
-        for move in range(27):
-            ns = state[0:i] + ((state[i] - {b}).union({move}),) + state[i+1:]
-            if ns not in history and is_legal(state, i, b, move):
-                this_cost = type_costs[i]*path_lengths[b].distance_to(move)
-                first_round.append((ns, history.copy(), this_cost))
+import heapq
+def search(start):
+    inf = float('inf')
+    dist = { start: 0 }
+    prev = { }
+    pq = [(0, start)]
+    history = set()
 
-def step_explode(s):
-    step(*s)
+    while pq:
+        d, u = heapq.heappop(pq)
+        if done(u):
+            return d
+        if u in history:
+            continue
+        history.add(u)
+        for cost, v in legal_transitions(u):
+            if v in history:
+                continue
 
-from multiprocessing import Pool
-with Pool(len(first_round)) as pool:
-    pool.map(step_explode, first_round)
-print(min_cost)
+            alt = dist[u] + cost
+            if alt < dist.get(v, inf):
+                dist[v] = alt
+                prev[v] = u
+                heapq.heappush(pq, (alt, v))
+
+print(search(state))
